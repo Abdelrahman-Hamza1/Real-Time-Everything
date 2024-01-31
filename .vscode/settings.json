@@ -2,5 +2,8 @@
     "files.associations": {
         "pthread.h": "c",
         "local.h": "c"
-    }
+    },
+    "cSpell.words": [
+        "shmptr"
+    ]
 }
