@@ -1,0 +1,281 @@
+****** THIS FILE WILL CONTAIN A SUMMARY ON ALL PARTS FOR IPC PART OF REAL TIME ******
+
+Basic File Structure
+
+#include "local.h"
+int main(int argc, char *argv[]){
+angle = atof(argv[1]);
+}
+
+Read File (String + Int)
+
+FILE* file = fopen("supermarket_config.txt", "r"); 
+
+if (file == NULL) {
+    return 0;
+}
+
+char thresholdName[60];
+int value;
+
+int i = 0;
+while (fscanf(file, "%s %d", thresholdName, &value) == 2) {
+    configValues[i] = value;
+    if (++i >= 15) {
+        break;
+    }
+}
+fclose(file);
+
+Read File too 
+
+FILE *file = fopen(SHELF_FILE, "r+");
+if ( file == NULL){
+    perror("fopen (shelves file)");
+    exit(EXIT_FAILURE);
+}
+
+int NUMOFPRODUCTS = supermarket_config[0];
+int RESTOCK_AMOUNT = supermarket_config[5];
+int itemsOnShelf[NUMOFPRODUCTS];
+int locks[NUMOFPRODUCTS];
+
+for(int i =0 ;i<NUMOFPRODUCTS;i++){
+    if(fscanf(file,"%d %d", &itemsOnShelf[i], &locks[i]) != 2){
+        printf(" IN SUPERMARKET FILE, Failed to read item %d.\n",i);
+    }
+}
+
+Write to File
+
+rewind(file);
+for(int i =0 ;i<NUMOFPRODUCTS;i++){
+    if( i == NUMOFPRODUCTS-1){
+        fprintf(file,"%d %d", itemsOnShelf[i], locks[i]);  
+        break;
+    }
+    fprintf(file,"%d %d\n", itemsOnShelf[i], locks[i]);  
+}
+
+fclose(file);
+
+Pass Int as Argument 
+
+char buffer[20];
+sprintf(buffer, "%d", i);          
+execlp("./team", "team", buffer, "&", 0);
+
+
+Fork & Exec A Code
+
+switch (fork()) {
+    case -1:
+    perror("Shelving_team: fork");
+    return 2;
+
+    case 0:
+    char buffer[20];
+    sprintf(buffer, "%d", i);          
+    execlp("./team", "team", buffer, "&", 0);
+    perror("shelving_team: exec");
+    return 3;
+}
+
+
+alarm(maxRunTime*60);
+
+FROM TERMINAL:
+trap -l 
+kill -SIGUSR1.... PID 
+ipcs
+ipcrm -q,m,s ID 
+
+SIGNALS 
+
+if ( sigset(SIGUSR1, signal_catcher10) == SIG_ERR ) {
+perror("Sigset can not set SIGQUIT");
+exit(SIGQUIT);
+}
+void signal_catcher10(int the_sig)
+{
+  printf("Youpiiiiiiiii!\n");
+  return;
+}
+
+kill(ppid,SIGUSR1 ); 
+
+srand((unsigned) getpid());
+value = (int) (min_range + (rand() % (max_range - min_range)));
+
+
+SEMAPHORE
+
+#define SEM_NAME "fkifhd"
+
+sem_t *sem;
+sem = sem_open(SEM_NAME, O_CREAT, 0666, 1);
+if(sem == SEM_FAILED){
+    perror("sem_open");
+    exit(EXIT_FAILURE);
+}
+
+to remove it 
+if (sem != NULL) {
+    sem_close(sem);
+    sem_unlink(SEM_NAME);
+}
+
+AQUIRE SEMAPHORE
+sem  = sem_open(SEM_NAME,0);
+if(sem == SEM_FAILED){
+    perror("sem_open (super market file)");
+    exit(EXIT_FAILURE);
+}
+sem_wait(sem);
+
+RELEASE IT 
+
+sem_post(sem);
+sem_close(sem);
+
+Connect without create 
+sem_t *sem  = sem_open(SEM_NAME, 0);
+
+if(sem == SEM_FAILED){
+    perror("sem_open");
+    exit(EXIT_FAILURE);
+}
+sem_wait(sem);
+
+Closing it is the same.
+
+
+
+Message Queue
+
+
+#define TO_TEAM 1L // THIS MUST BE LONG FOR MSG QUEUE TO WORK!
+
+typedef struct{
+    long msg_type;
+    int index;
+    int count;
+} MESSAGE;
+
+#define SEED 'g'
+int mid;
+key_t       key; 
+if ((key = ftok(".", SEED)) == -1) {    
+    perror("CASHIER:  Client: key generation");
+    return 1;
+}
+if ((mid = msgget(key, 0 )) == -1 ) {
+    mid = msgget(key, IPC_CREAT | 0777);
+}
+
+MESSAGE msg;
+msg.msg_type = TO_TEAM;
+msg.index = i;
+msg.count =  5;
+key_t       key; 
+if ((key = ftok(".", SEED)) == -1) {    
+    perror("CASHIER:  Client: key generation");
+    return 1;
+}
+int myMid = msgget(key, 0 );
+int err = msgsnd(myMid, &msg, sizeof(MESSAGE) - sizeof(long), 0);
+if(err == -1){
+    perror("SUPERMARKET: Error sending the message to the Team queue\n");
+    cleanUp();
+    exit(EXIT_FAILURE);
+}
+
+MESSAGE msg;
+if ((n = msgrcv(mid, &msg, sizeof(msg), TO_TEAM, 0)) == -1 ) { 
+    perror("Manager:  msgrcv error");
+    return -2;
+}
+
+SHARED MEMORY
+
+struct MEMORY{
+  int queueSize;
+  int numberOfItems;
+  int timeToScan;
+  int behaviour;
+}; 
+
+int shmid;
+char          *shmptr; 
+struct  MEMORY* memory;
+
+if ( (shmid = shmget(((int)parent_pid + index), sizeof(memory), IPC_CREAT | 0777)) != -1 ) {
+
+if ( (shmptr = (struct MEMORY *) shmat(shmid, NULL, 0)) == (char *) -1 ) {
+    perror("shmptr -- parent -- attach");
+    exit(1);
+}
+memory = (struct MEMORY *) shmptr;
+}
+else {
+perror("shmid -- parent -- creation");
+exit(2);
+}
+
+memory->queueSize = buf.msg_qnum;
+memory->numberOfItems = buf.__msg_cbytes;
+memory->timeToScan = timeToScan;
+memory->behaviour = behaviour;
+
+Read
+struct MEMORY * memory[cashiersNumber]; 
+char          *shmptr;
+for(int i =0 ; i < cashiersNumber; i++){
+
+int shmId = shmget(((int)getppid() + i), 0, 0);
+if(shmId == -1){
+    printf("IN loop iteration {%d} i failed to connect to shmem %d!\n", i, ((int)getppid() + i));
+    perror("CUSTOMER: Error connecting to shared memory");
+    exit(EXIT_FAILURE);
+}
+if ( (shmptr = (struct MEMORY *) shmat(shmId, NULL, 0)) == (char *) -1 ) {
+    perror("shmptr -- parent -- attach");
+    exit(1);
+}
+printf("Customer {%d} reading shmem of [%d] \n", (int)getpid() , i );
+memory[i] = (struct MEMORY *)shmptr;
+}
+int evaluation[cashiersNumber]; 
+for(int i =0; i<cashiersNumber;i++){
+evaluation[i] = memory[i]->queueSize*weights[0] + memory[i]->numberOfItems * weights[1] + memory[i]->timeToScan * weights[2] + memory[i]->behaviour*weights[3];
+}
+
+
+THREADS
+
+int threadIds [employeeCount];
+int managerThreadId; 
+pthread_t threadJoin[employeeCount];
+pthread_t managerJoin;
+
+managerThreadId = pthread_create(&managerJoin, NULL, Manager, (void *) NULL);
+
+for (int i = 0 ; i < employeeCount ; i++){
+    threadIds[i] = pthread_create(&threadJoin[i], NULL, Employee, (void *) i);
+}
+
+pthread_join(managerJoin, NULL);
+for (int i = 0; i < employeeCount; i++) {
+    pthread_join(threadJoin[i], NULL);
+}
+
+pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;  
+pthread_cond_t count_threshold_cv = PTHREAD_COND_INITIALIZER; 
+
+pthread_mutex_lock(&count_mutex);
+pthread_mutex_unlock(&count_mutex); 
+
+if(itemCounter != 0){
+pthread_cond_wait(&count_threshold_cv, &count_mutex); // sleeps on this cond (IF)
+}
+pthread_cond_broadcast(&count_threshold_cv);  
